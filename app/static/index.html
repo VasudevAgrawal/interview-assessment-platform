@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Assessment Platform</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Interview Assessment Platform</div>
+    <div id="userBox" class="user-box hidden">
+      <span id="userLabel"></span>
+      <button id="logoutBtn" class="btn btn-secondary">Log out</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- AUTH VIEW -->
+    <section id="authView" class="auth-view">
+      <div class="card auth-card">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="login">Log In</button>
+          <button class="tab-btn" data-tab="register">Register</button>
+        </div>
+
+        <form id="loginForm" class="tab-panel active">
+          <h2>Welcome back</h2>
+          <label>Username
+            <input type="text" id="loginUsername" required />
+          </label>
+          <label>Password
+            <input type="password" id="loginPassword" required />
+          </label>
+          <button type="submit" class="btn btn-primary">Log In</button>
+          <p class="form-error" id="loginError"></p>
+        </form>
+
+        <form id="registerForm" class="tab-panel">
+          <h2>Create an account</h2>
+          <label>Username
+            <input type="text" id="regUsername" required />
+          </label>
+          <label>Email
+            <input type="email" id="regEmail" required />
+          </label>
+          <label>Full Name
+            <input type="text" id="regFullName" />
+          </label>
+          <label>Password
+            <input type="password" id="regPassword" required />
+          </label>
+          <label>I am a...
+            <select id="regRole">
+              <option value="candidate">Candidate</option>
+              <option value="interviewer">Interviewer</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-primary">Register</button>
+          <p class="form-hint">The first user to register becomes an admin.</p>
+          <p class="form-error" id="registerError"></p>
+          <p class="form-success" id="registerSuccess"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= STAFF VIEW (admin / interviewer) ================= -->
+
+    <!-- Assessments list -->
+    <section id="assessmentsView" class="hidden">
+      <div class="toolbar">
+        <h1>Assessments</h1>
+        <div class="toolbar-actions">
+          <input type="text" id="assessmentSearch" placeholder="Search assessments..." />
+          <button id="newAssessmentBtn" class="btn btn-primary">+ New Assessment</button>
+        </div>
+      </div>
+
+      <form id="newAssessmentForm" class="card hidden">
+        <h3>Create Assessment</h3>
+        <label>Title
+          <input type="text" id="newAssessmentTitle" required />
+        </label>
+        <label>Description
+          <textarea id="newAssessmentDescription" rows="2"></textarea>
+        </label>
+        <label>Duration (minutes)
+          <input type="number" id="newAssessmentDuration" value="60" min="1" />
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Create</button>
+          <button type="button" class="btn btn-secondary cancel-form">Cancel</button>
+        </div>
+        <p class="form-error" id="newAssessmentError"></p>
+      </form>
+
+      <div id="assessmentsList" class="grid"></div>
+    </section>
+
+    <!-- Assessment detail (staff) -->
+    <section id="assessmentDetailView" class="hidden">
+      <button class="btn btn-link back-to-assessments">&larr; Back to assessments</button>
+      <h1 id="assessmentTitle"></h1>
+      <p id="assessmentDescription" class="muted"></p>
+      <div class="status-controls">
+        <label style="margin:0;">Status
+          <select id="assessmentStatusSelect">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="closed">Closed</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="tabs" id="assessmentTabs">
+        <button class="tab-btn active" data-tab="questions">Questions</button>
+        <button class="tab-btn" data-tab="candidates">Candidates</button>
+      </div>
+
+      <!-- Questions -->
+      <div class="tab-panel active" id="panel-questions">
+        <div class="toolbar">
+          <div></div>
+          <button class="btn btn-primary" id="newQuestionBtn">+ New Question</button>
+        </div>
+        <form id="newQuestionForm" class="card hidden">
+          <h3>Add Question</h3>
+          <label>Title
+            <input type="text" id="questionTitle" required />
+          </label>
+          <label>Description
+            <textarea id="questionDescription" rows="2"></textarea>
+          </label>
+          <label>Difficulty
+            <select id="questionDifficulty">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label>Max Score
+            <input type="number" id="questionMaxScore" value="10" min="0" step="0.5" />
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add</button>
+            <button type="button" class="btn btn-secondary cancel-form">Cancel</button>
+          </div>
+          <p class="form-error" id="newQuestionError"></p>
+        </form>
+        <div id="questionsList" class="list"></div>
+      </div>
+
+      <!-- Candidates / Assignments -->
+      <div class="tab-panel" id="panel-candidates">
+        <div class="toolbar">
+          <div></div>
+          <button class="btn btn-primary" id="newAssignmentBtn">+ Assign Candidate</button>
+        </div>
+        <form id="newAssignmentForm" class="card hidden">
+          <h3>Assign Candidate</h3>
+          <label>Candidate User ID
+            <input type="number" id="assignCandidateId" min="1" required />
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Assign</button>
+            <button type="button" class="btn btn-secondary cancel-form">Cancel</button>
+          </div>
+          <p class="form-hint">
+            Ask the candidate for their User ID (visible on their profile after registering).
+          </p>
+          <p class="form-error" id="newAssignmentError"></p>
+        </form>
+        <div id="assignmentsList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- Assignment detail (staff: review submissions + give feedback) -->
+    <section id="assignmentReviewView" class="hidden">
+      <button class="btn btn-link back-to-assessment-detail">&larr; Back to assessment</button>
+      <h1>Candidate Submissions</h1>
+      <p id="assignmentMeta" class="muted"></p>
+      <div id="submissionsReviewList" class="list"></div>
+    </section>
+
+    <!-- ================= CANDIDATE VIEW ================= -->
+
+    <!-- My Assignments list -->
+    <section id="myAssignmentsView" class="hidden">
+      <div class="toolbar">
+        <h1>My Assessments</h1>
+      </div>
+      <div id="myAssignmentsList" class="grid"></div>
+    </section>
+
+    <!-- Assignment detail (candidate: answer questions) -->
+    <section id="myAssignmentDetailView" class="hidden">
+      <button class="btn btn-link back-to-my-assignments">&larr; Back to my assessments</button>
+      <h1 id="myAssessmentTitle"></h1>
+      <p id="myAssessmentDescription" class="muted"></p>
+      <p class="list-item-meta" id="myAssessmentMeta"></p>
+      <div id="myQuestionsList" class="list"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
