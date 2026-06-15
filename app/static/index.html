@@ -9,9 +9,12 @@
 <body>
   <header class="topbar">
     <div class="brand">Interview Assessment Platform</div>
-    <div id="userBox" class="user-box hidden">
-      <span id="userLabel"></span>
-      <button id="logoutBtn" class="btn btn-secondary">Log out</button>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button id="themeToggle" class="btn btn-secondary btn-sm" title="Toggle theme">🌙</button>
+      <div id="userBox" class="user-box hidden">
+        <span id="userLabel"></span>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm">Log out</button>
+      </div>
     </div>
   </header>
 
@@ -23,33 +26,19 @@
           <button class="tab-btn active" data-tab="login">Log In</button>
           <button class="tab-btn" data-tab="register">Register</button>
         </div>
-
         <form id="loginForm" class="tab-panel active">
           <h2>Welcome back</h2>
-          <label>Username
-            <input type="text" id="loginUsername" required />
-          </label>
-          <label>Password
-            <input type="password" id="loginPassword" required />
-          </label>
+          <label>Username<input type="text" id="loginUsername" required /></label>
+          <label>Password<input type="password" id="loginPassword" required /></label>
           <button type="submit" class="btn btn-primary">Log In</button>
           <p class="form-error" id="loginError"></p>
         </form>
-
         <form id="registerForm" class="tab-panel">
           <h2>Create an account</h2>
-          <label>Username
-            <input type="text" id="regUsername" required />
-          </label>
-          <label>Email
-            <input type="email" id="regEmail" required />
-          </label>
-          <label>Full Name
-            <input type="text" id="regFullName" />
-          </label>
-          <label>Password
-            <input type="password" id="regPassword" required />
-          </label>
+          <label>Username<input type="text" id="regUsername" required /></label>
+          <label>Email<input type="email" id="regEmail" required /></label>
+          <label>Full Name<input type="text" id="regFullName" /></label>
+          <label>Password<input type="password" id="regPassword" required /></label>
           <label>I am a...
             <select id="regRole">
               <option value="candidate">Candidate</option>
@@ -64,9 +53,20 @@
       </div>
     </section>
 
-    <!-- ================= STAFF VIEW (admin / interviewer) ================= -->
+    <!-- DASHBOARD VIEW (staff) -->
+    <section id="dashboardView" class="hidden">
+      <div class="toolbar">
+        <h1>Dashboard</h1>
+        <button id="goToAssessmentsBtn" class="btn btn-primary">View Assessments</button>
+      </div>
+      <div id="statsGrid" class="stats-grid"></div>
+      <div class="dashboard-section">
+        <div class="section-label">Recent submissions</div>
+        <div id="recentActivity" class="list"></div>
+      </div>
+    </section>
 
-    <!-- Assessments list -->
+    <!-- ASSESSMENTS LIST -->
     <section id="assessmentsView" class="hidden">
       <div class="toolbar">
         <h1>Assessments</h1>
@@ -75,31 +75,26 @@
           <button id="newAssessmentBtn" class="btn btn-primary">+ New Assessment</button>
         </div>
       </div>
-
       <form id="newAssessmentForm" class="card hidden">
         <h3>Create Assessment</h3>
-        <label>Title
-          <input type="text" id="newAssessmentTitle" required />
-        </label>
-        <label>Description
-          <textarea id="newAssessmentDescription" rows="2"></textarea>
-        </label>
-        <label>Duration (minutes)
-          <input type="number" id="newAssessmentDuration" value="60" min="1" />
-        </label>
+        <label>Title<input type="text" id="newAssessmentTitle" required /></label>
+        <label>Description<textarea id="newAssessmentDescription" rows="2"></textarea></label>
+        <label>Duration (minutes)<input type="number" id="newAssessmentDuration" value="60" min="1" /></label>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Create</button>
           <button type="button" class="btn btn-secondary cancel-form">Cancel</button>
         </div>
         <p class="form-error" id="newAssessmentError"></p>
       </form>
-
       <div id="assessmentsList" class="grid"></div>
     </section>
 
-    <!-- Assessment detail (staff) -->
+    <!-- ASSESSMENT DETAIL (staff) -->
     <section id="assessmentDetailView" class="hidden">
-      <button class="btn btn-link back-to-assessments">&larr; Back to assessments</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <button class="btn btn-link back-to-assessments">&larr; Back to assessments</button>
+        <button id="exportCsvBtn" class="btn btn-secondary btn-sm">⬇ Export CSV</button>
+      </div>
       <h1 id="assessmentTitle"></h1>
       <p id="assessmentDescription" class="muted"></p>
       <div class="status-controls">
@@ -111,10 +106,10 @@
           </select>
         </label>
       </div>
-
       <div class="tabs" id="assessmentTabs">
         <button class="tab-btn active" data-tab="questions">Questions</button>
         <button class="tab-btn" data-tab="candidates">Candidates</button>
+        <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
       </div>
 
       <!-- Questions -->
@@ -125,12 +120,8 @@
         </div>
         <form id="newQuestionForm" class="card hidden">
           <h3>Add Question</h3>
-          <label>Title
-            <input type="text" id="questionTitle" required />
-          </label>
-          <label>Description
-            <textarea id="questionDescription" rows="2"></textarea>
-          </label>
+          <label>Title<input type="text" id="questionTitle" required /></label>
+          <label>Description<textarea id="questionDescription" rows="2"></textarea></label>
           <label>Difficulty
             <select id="questionDifficulty">
               <option value="easy">Easy</option>
@@ -138,9 +129,7 @@
               <option value="hard">Hard</option>
             </select>
           </label>
-          <label>Max Score
-            <input type="number" id="questionMaxScore" value="10" min="0" step="0.5" />
-          </label>
+          <label>Max Score<input type="number" id="questionMaxScore" value="10" min="0" step="0.5" /></label>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Add</button>
             <button type="button" class="btn btn-secondary cancel-form">Cancel</button>
@@ -150,7 +139,7 @@
         <div id="questionsList" class="list"></div>
       </div>
 
-      <!-- Candidates / Assignments -->
+      <!-- Candidates -->
       <div class="tab-panel" id="panel-candidates">
         <div class="toolbar">
           <div></div>
@@ -158,23 +147,24 @@
         </div>
         <form id="newAssignmentForm" class="card hidden">
           <h3>Assign Candidate</h3>
-          <label>Candidate User ID
-            <input type="number" id="assignCandidateId" min="1" required />
-          </label>
+          <label>Candidate User ID<input type="number" id="assignCandidateId" min="1" required /></label>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Assign</button>
             <button type="button" class="btn btn-secondary cancel-form">Cancel</button>
           </div>
-          <p class="form-hint">
-            Ask the candidate for their User ID (visible on their profile after registering).
-          </p>
+          <p class="form-hint">Ask the candidate for their User ID (visible after registering).</p>
           <p class="form-error" id="newAssignmentError"></p>
         </form>
         <div id="assignmentsList" class="list"></div>
       </div>
+
+      <!-- Leaderboard -->
+      <div class="tab-panel" id="panel-leaderboard">
+        <div id="leaderboardList" class="list"></div>
+      </div>
     </section>
 
-    <!-- Assignment detail (staff: review submissions + give feedback) -->
+    <!-- ASSIGNMENT REVIEW (staff) -->
     <section id="assignmentReviewView" class="hidden">
       <button class="btn btn-link back-to-assessment-detail">&larr; Back to assessment</button>
       <h1>Candidate Submissions</h1>
@@ -182,19 +172,19 @@
       <div id="submissionsReviewList" class="list"></div>
     </section>
 
-    <!-- ================= CANDIDATE VIEW ================= -->
-
-    <!-- My Assignments list -->
+    <!-- CANDIDATE: My Assignments -->
     <section id="myAssignmentsView" class="hidden">
-      <div class="toolbar">
-        <h1>My Assessments</h1>
-      </div>
+      <div class="toolbar"><h1>My Assessments</h1></div>
       <div id="myAssignmentsList" class="grid"></div>
     </section>
 
-    <!-- Assignment detail (candidate: answer questions) -->
+    <!-- CANDIDATE: Assignment Detail -->
     <section id="myAssignmentDetailView" class="hidden">
       <button class="btn btn-link back-to-my-assignments">&larr; Back to my assessments</button>
+      <div id="timerBar" class="timer-bar hidden">
+        <span class="timer-label">⏱ Time remaining:</span>
+        <span id="timerDisplay" class="timer-display">--:--</span>
+      </div>
       <h1 id="myAssessmentTitle"></h1>
       <p id="myAssessmentDescription" class="muted"></p>
       <p class="list-item-meta" id="myAssessmentMeta"></p>
@@ -203,7 +193,6 @@
   </main>
 
   <div id="toast" class="toast hidden"></div>
-
   <script src="/static/app.js"></script>
 </body>
 </html>

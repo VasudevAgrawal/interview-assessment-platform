@@ -161,3 +161,96 @@ def update_question(
     db.commit()
     db.refresh(question)
     return question
+
+
+# ---------------- Leaderboard ----------------
+
+@router.get("/{assessment_id}/leaderboard")
+def get_leaderboard(
+    assessment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    get_assessment_or_404(assessment_id, db)
+    assignments = (
+        db.query(models.Assignment)
+        .filter(models.Assignment.assessment_id == assessment_id)
+        .all()
+    )
+    results = []
+    for assignment in assignments:
+        submissions = (
+            db.query(models.Submission)
+            .filter(models.Submission.assignment_id == assignment.id)
+            .all()
+        )
+        total_score = 0.0
+        scored_count = 0
+        for sub in submissions:
+            for fb in sub.feedback_entries:
+                if fb.score is not None:
+                    total_score += fb.score
+                    scored_count += 1
+        candidate = db.query(models.User).filter(models.User.id == assignment.candidate_id).first()
+        name = candidate.full_name or candidate.username if candidate else f"Candidate #{assignment.candidate_id}"
+        results.append({
+            "candidate_id": assignment.candidate_id,
+            "candidate_name": name if current_user.role != models.GlobalRole.CANDIDATE else f"Candidate #{assignment.candidate_id}",
+            "total_score": round(total_score, 2),
+            "scored_questions": scored_count,
+            "status": assignment.status,
+        })
+    results.sort(key=lambda x: x["total_score"], reverse=True)
+    for i, r in enumerate(results):
+        r["rank"] = i + 1
+    return results
+
+
+# ---------------- CSV Export ----------------
+
+from fastapi.responses import StreamingResponse
+import csv, io
+
+@router.get("/{assessment_id}/export")
+def export_results_csv(
+    assessment_id: int,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_staff),
+):
+    assessment = get_assessment_or_404(assessment_id, db)
+    questions = db.query(models.Question).filter(models.Question.assessment_id == assessment_id).all()
+    assignments = db.query(models.Assignment).filter(models.Assignment.assessment_id == assessment_id).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    header = ["Candidate ID", "Candidate Name", "Status", "Total Score"]
+    for q in questions:
+        header.append(f"Q: {q.title[:30]} (max {q.max_score})")
+    writer.writerow(header)
+
+    for assignment in assignments:
+        candidate = db.query(models.User).filter(models.User.id == assignment.candidate_id).first()
+        name = candidate.full_name or candidate.username if candidate else f"#{assignment.candidate_id}"
+        submissions = db.query(models.Submission).filter(models.Submission.assignment_id == assignment.id).all()
+
+        q_scores = {}
+        total = 0.0
+        for sub in submissions:
+            for fb in sub.feedback_entries:
+                if fb.score is not None:
+                    q_scores[sub.question_id] = q_scores.get(sub.question_id, 0) + fb.score
+                    total += fb.score
+
+        row = [assignment.candidate_id, name, assignment.status, round(total, 2)]
+        for q in questions:
+            row.append(q_scores.get(q.id, ""))
+        writer.writerow(row)
+
+    output.seek(0)
+    filename = f"assessment_{assessment_id}_results.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
